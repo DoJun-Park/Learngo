@@ -1,11 +1,5 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/Learngo/mydict"
-)
-
 func main() {
 	// //------------------------Bank------------------------
 	// account := accounts.NewAccount("dojun")
@@ -47,7 +41,6 @@ func main() {
 	// if err2 != nil {
 	// 	fmt.Println(err2)
 	// }
-	// //------------------------------------------------------
 
 	// Update
 	// dictionary := mydict.Dictionary{}
@@ -62,16 +55,18 @@ func main() {
 	// fmt.Println(word)
 
 	// Delete
-	dictionary := mydict.Dictionary{}
-	baseWord := "hello"
-	dictionary.Add(baseWord, "First")
-	dictionary.Search(baseWord)
-	dictionary.Delete(baseWord)
-	word, err := dictionary.Search(baseWord)
+	// dictionary := mydict.Dictionary{}
+	// baseWord := "hello"
+	// dictionary.Add(baseWord, "First")
+	// dictionary.Search(baseWord)
+	// dictionary.Delete(baseWord)
+	// word, err := dictionary.Search(baseWord)
 
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(word)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println(word)
+
+	// //------------------------------------------------------
 
 }
