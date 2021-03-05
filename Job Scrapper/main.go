@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -11,26 +10,30 @@ import (
 var baseURL string = "https://kr.indeed.com/jobs?q=golang"
 
 func main() {
-	getPages()
+	totalPages := getPages()
+
+	for 
 }
 
 func getPages() int { //페이지 수 가져오는 함수
+	pages := 0
 	res, err := http.Get(baseURL)
 	checkErr(err)
 	checkCode(res)
 
-	// 문장에서 어떤 에러가 발생하더라도 항상 파일을 Close할 수 있도록 하여 메모리가 새어 나가는것을 막을 수 있다.
+	// 문장에서 에러가 발생하더라도 res.Body를 Close하여 메모리가 새어 나가는것을 막을 수 있다.
 	defer res.Body.Close()
 
-	// query docu 만드는 방법
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	// query docu 로드
+	doc, err := goquery.NewDocumentFromReader(res.Body) //res.Body는 기본적으로 byte
 	checkErr(err)
 
-	doc.Find(".pagination").Each()
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length() //pagination 클래스 내에 링크 갯수
+	})
 
-	fmt.Println(doc)
+	return pages
 
-	return 0
 }
 
 // 에러를 계속 체크해줘야 하기 때문에 따로 함수를 만들어서 처리
