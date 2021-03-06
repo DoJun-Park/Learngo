@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -14,20 +16,34 @@ var baseURL string = "https://kr.indeed.com/jobs?q=golang"
 
 type extractedJob struct {
 	id       string
+	title    string
 	location string
-	titile   string
 	salary   string
 	summary  string
 }
 
 func main() {
+	var jobs []extractedJob
+	c := make(chan []extractedJob) //일자리 정보가 여러개 전달되므로 extractedJob이 아닌 []extractedJob
 	totalPages := getPages()
 	for i := 0; i < totalPages; i++ {
-		getPage(i)
+		go getPage(i, c)
 	}
+
+	for i := 0; i < totalPages; i++ { //전체 페이지 수만큼 메세지가 오기 때문에
+		//jobs에 일자리를 저장하는 것을 같지만, return값을 받아서 저장하는 것이 아닌 메세지를 통해 받는다.
+		extractJobs := <-c
+		jobs = append(jobs, extractJobs...) // extractedJobs를 각각의 배열로 저장하는 것이 아닌 하나의 배열로 만들기 위해 contents를 가져온다. 이때 '...' 이용
+	}
+
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
 }
 
-func getPage(page int) { //하나의 페이지에 대해 정보
+func getPage(page int, mainC chan<- []extractedJob) { //하나의 페이지에 있는 일자리 추출
+	var jobs []extractedJob
+	C := make(chan extractedJob)
+
 	pageURL := baseURL + "&start=" + strconv.Itoa(page*10)
 	fmt.Println("Requesting", pageURL)
 	res, err := http.Get(pageURL)
@@ -41,24 +57,36 @@ func getPage(page int) { //하나의 페이지에 대해 정보
 
 	searchCards := doc.Find(".jobsearch-SerpJobCard")
 	searchCards.Each(func(i int, card *goquery.Selection) {
-		extractJob(card)
+		go extractJob(card, C)
 	})
+
+	for i := 0; i < searchCards.Length(); i++ { //전달받을 메세지의 수는 카드의 수와 같음.
+		job := <-C
+		jobs = append(jobs, job)
+	}
+
+	mainC <- jobs
 }
 
-func extractJob(card *goquery.Selection) {
+func extractJob(card *goquery.Selection, c chan<- extractedJob) { //카드에서 일자리 정보 추출
 	id, _ := card.Attr("data-jk")
 	title := cleanString(card.Find(".title>a").Text())
 	location := cleanString(card.Find(".sjcl").Text())
 	salary := cleanString(card.Find(".salaryText").Text())
 	summary := cleanString(card.Find(".summary").Text())
-	fmt.Println(id, title, location, salary, summary)
+	c <- extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
 }
 
 func cleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
-func getPages() int { //페이지 수 가져오는 함수
+func getPages() int { //총 페이지 수 가져오는 함수
 	pages := 0
 	res, err := http.Get(baseURL)
 	checkErr(err)
@@ -77,6 +105,28 @@ func getPages() int { //페이지 수 가져오는 함수
 
 	return pages
 
+}
+
+func writeJobs(jobs []extractedJob) { //일자리를 csv파일로 저장하기 위한 함수
+	file, err := os.Create("jobs.csv") //jobs.csv 파일 생성
+	checkErr(err)
+
+	utf8bom := []byte{0xEF, 0xBB, 0xBF}
+	file.Write(utf8bom)
+
+	w := csv.NewWriter(file) //Writer 생성
+	defer w.Flush()          //함수가 끝날 때 파일에 데이터 입력
+
+	headers := []string{"Link", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
 }
 
 // 에러를 계속 체크해줘야 하기 때문에 따로 함수를 만들어서 처리
