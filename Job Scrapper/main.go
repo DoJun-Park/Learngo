@@ -1,18 +1,61 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 var baseURL string = "https://kr.indeed.com/jobs?q=golang"
 
+type extractedJob struct {
+	id       string
+	location string
+	titile   string
+	salary   string
+	summary  string
+}
+
 func main() {
 	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		getPage(i)
+	}
+}
 
-	for 
+func getPage(page int) { //하나의 페이지에 대해 정보
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*10)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".jobsearch-SerpJobCard")
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		extractJob(card)
+	})
+}
+
+func extractJob(card *goquery.Selection) {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find(".title>a").Text())
+	location := cleanString(card.Find(".sjcl").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".summary").Text())
+	fmt.Println(id, title, location, salary, summary)
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
 func getPages() int { //페이지 수 가져오는 함수
