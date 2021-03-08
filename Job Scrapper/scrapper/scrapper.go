@@ -83,7 +83,8 @@ func extractJob(card *goquery.Selection, c chan<- extractedJob) { //카드에서
 		summary:  summary}
 }
 
-func cleanString(str string) string {
+// CleanString cleans a string
+func CleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
