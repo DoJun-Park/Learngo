@@ -13,7 +13,6 @@ import (
 )
 
 type extractedJob struct {
-	id       string
 	title    string
 	location string
 	salary   string
