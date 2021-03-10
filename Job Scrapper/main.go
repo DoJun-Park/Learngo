@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo"
 )
 
+//echo 프레임워크 사용해서 서버 띄워서 입력값을 받아 scrapper.go에 전달
+
 const File_Name string = "jobs.csv"
 
 func handleHome(c echo.Context) error {
