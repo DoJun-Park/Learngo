@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -110,35 +109,35 @@ func main() {
 	// }
 	// ----------------------------------------------------------------------
 
-	// -------------Go routine을 사용한 URL Checker-----------------------------
+	// -------------Go routine을 사용한 URL Checker----------------------------
 
-	c := make(chan requestResult)
-	var results = make(map[string]string)
+	// c := make(chan requestResult)
+	// var results = make(map[string]string)
 
-	urls := []string{
-		"https://www.airbnb.com/",
-		"https://www.google.com/",
-		"https://www.amazon.com/",
-		"https://www.reddit.com/",
-		"https://www.google.com/",
-		"https://soundcloud.com/",
-		"https://www.facebook.com/",
-		"https://www.instagram.com/",
-		"https://academy.nomadcoders.co/",
-	}
+	// urls := []string{
+	// 	"https://www.airbnb.com/",
+	// 	"https://www.google.com/",
+	// 	"https://www.amazon.com/",
+	// 	"https://www.reddit.com/",
+	// 	"https://www.google.com/",
+	// 	"https://soundcloud.com/",
+	// 	"https://www.facebook.com/",
+	// 	"https://www.instagram.com/",
+	// 	"https://academy.nomadcoders.co/",
+	// }
 
-	for _, url := range urls { //range를 사용하면 인 덱스, 요소값 사용할 수 있다.
-		go hitURL(url, c)
-	}
+	// for _, url := range urls { //range를 사용하면 인 덱스, 요소값 사용할 수 있다.
+	// 	go hitURL(url, c)
+	// }
 
-	for i := 0; i < len(urls); i++ {
-		result := <-c
-		results[result.url] = result.status
-	}
+	// for i := 0; i < len(urls); i++ {
+	// 	result := <-c
+	// 	results[result.url] = result.status
+	// }
 
-	for url, status := range results {
-		fmt.Println(url, status)
-	}
+	// for url, status := range results {
+	// 	fmt.Println(url, status)
+	// }
 
 	// ----------------------------------------------------------------------
 
